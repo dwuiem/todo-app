@@ -20,7 +20,7 @@ todo-app
 ├── internal             # Inner packages
 │    ├── config          # Configurate project
 │    │    └── config.go  
-│    ├── handler         # HTTP Handler
+│    ├── handler         # HTTP Request handlers
 │    │    ├── ...
 │    ├── model           # Data models defenitions
 │    │    ├── ...
