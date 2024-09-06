@@ -1,8 +1,12 @@
 package service
 
-import "todo-app/internal/repository"
+import (
+	"todo-app/internal/model"
+	"todo-app/internal/repository"
+)
 
 type Authorization interface {
+	CreateUser(user model.User) (int, error)
 }
 
 type TodoList interface {
@@ -15,11 +19,10 @@ type Service struct {
 	Authorization
 	TodoList
 	TodoItem
-	Repository repository.Repository
 }
 
 func New(repos *repository.Repository) *Service {
 	return &Service{
-		Repository: *repos,
+		Authorization: NewAuthService(repos.Authorization),
 	}
 }

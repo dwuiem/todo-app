@@ -13,7 +13,6 @@ import (
 
 func main() {
 	cfg := config.MustLoad()
-
 	db := postgres.New(*cfg)
 	repos := repository.New(db)
 	services := service.New(repos)
