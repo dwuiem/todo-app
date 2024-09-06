@@ -3,15 +3,28 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"todo-app/internal/model"
 )
 
 func (h *Handler) createList(c *gin.Context) {
-	id, ok := c.Get("userID")
-	if !ok {
-		newErrorResponse(c, http.StatusInternalServerError, "No UserID found")
+	userID, err := getUserId(c)
+	if err != nil {
 		return
 	}
-	var input todo
+
+	var input model.List
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+	id, err := h.services.List.Create(userID, input)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"id": id,
+	})
 }
 
 func (h *Handler) getAllLists(c *gin.Context) {
