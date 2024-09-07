@@ -13,6 +13,8 @@ type Authorization interface {
 
 type List interface {
 	Create(userID int, list model.List) (int, error)
+	GetAll(userID int) ([]model.List, error)
+	GetByID(userID, listID int) (model.List, error)
 }
 
 type Item interface {

@@ -11,7 +11,9 @@ type ListRepository struct {
 	db *sqlx.DB
 }
 
-func NewListRepository(db *sqlx.DB) *ListRepository { return &ListRepository{db: db} }
+func NewListRepository(db *sqlx.DB) *ListRepository {
+	return &ListRepository{db: db}
+}
 
 func (r *ListRepository) Create(userID int, list model.List) (int, error) {
 	tx, err := r.db.Begin()
@@ -36,4 +38,18 @@ func (r *ListRepository) Create(userID int, list model.List) (int, error) {
 	}
 
 	return id, tx.Commit()
+}
+
+func (r *ListRepository) GetAll(userID int) ([]model.List, error) {
+	var lists []model.List
+	query := fmt.Sprintf("SELECT tl.id, tl.title FROM %s tl INNER JOIN %s ul on tl.id = ul.list_id WHERE ul.user_id = $1", postgres.ListsTable, postgres.UsersListsTable)
+	err := r.db.Select(&lists, query, userID)
+	return lists, err
+}
+
+func (r *ListRepository) GetByID(userID int, listID int) (model.List, error) {
+	var list model.List
+	query := fmt.Sprintf("SELECT tl.id, tl.title FROM %s tl INNER JOIN %s ul on tl.id = ul.list_id WHERE ul.user_id = $1 AND ul.list_id = $2", postgres.ListsTable, postgres.UsersListsTable)
+	err := r.db.Get(&list, query, userID, listID)
+	return list, err
 }

@@ -1,8 +1,8 @@
 package model
 
 type List struct {
-	ID    int    `json:"id"`
-	Title string `json:"title"`
+	ID    int    `json:"id" db:"id"`
+	Title string `json:"title" db:"title" binding:"required"`
 }
 
 type User struct {
