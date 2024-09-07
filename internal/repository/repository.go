@@ -14,6 +14,8 @@ type List interface {
 	Create(userID int, list model.List) (int, error)
 	GetAll(userID int) ([]model.List, error)
 	GetByID(userID int, listID int) (model.List, error)
+	Delete(userID int, listID int) error
+	Update(userID int, listID int, input model.UpdateListInput) error
 }
 
 type Item interface {

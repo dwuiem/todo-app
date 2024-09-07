@@ -1,5 +1,7 @@
 package model
 
+import "errors"
+
 type List struct {
 	ID    int    `json:"id" db:"id"`
 	Title string `json:"title" db:"title" binding:"required"`
@@ -27,4 +29,15 @@ type ListUserRelation struct {
 type ListItemRelation struct {
 	ListID int `json:"list_id" db:"list_id"`
 	ItemID int `json:"item_id" db:"item_id"`
+}
+
+type UpdateListInput struct {
+	Title *string `json:"title"`
+}
+
+func (i UpdateListInput) Validate() error {
+	if i.Title == nil {
+		return errors.New("title is required")
+	}
+	return nil
 }
