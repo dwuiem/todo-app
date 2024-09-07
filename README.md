@@ -10,6 +10,29 @@ This is a REST API application with simple CRUD operations with tasks and lists 
 - **Authentication** JWT lib to identity users (JSON web token)
 - **Database** PostgreSQL using `sqlx` lib
 
+## Project Structure
+```
+todo-app
+├── cmd                  # Entry point of app
+│    └── main.go
+├── config               # Configuration
+│    └── local.yaml
+├── internal             # Inner packages
+│    ├── config          # Configurate project
+│    │    └── config.go  
+│    ├── handler         # HTTP Request handlers
+│    │    ├── ...
+│    ├── model           # Data models defenitions
+│    │    ├── ...
+│    ├── reposirty       # Database interactions
+│    │    ├── postgres
+│    │    │    └── postgres.go 
+│    │    ├── ...
+│    └── service
+└── go.mod               # Go dependencies
+
+```
+
 ## API Usage
 
 ### User Authentication
