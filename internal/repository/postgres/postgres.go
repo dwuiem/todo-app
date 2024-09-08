@@ -45,6 +45,7 @@ func New(cfg config.Config) *sqlx.DB {
 	);
 	CREATE TABLE IF NOT EXISTS ` + ItemsTable + ` (
 		id SERIAL PRIMARY KEY,
+		title TEXT NOT NULL,
 		description TEXT NOT NULL,
 		completed BOOLEAN NOT NULL DEFAULT FALSE
 	);

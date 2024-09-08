@@ -30,7 +30,7 @@ func (r *ItemRepository) Create(listID int, item model.Item) (int, error) {
 	// Put item into "items" table
 
 	createItemQuery := fmt.Sprintf(`
-		INSERT INTO %s (title, description) VALUES ($1, $1) RETURNING id
+		INSERT INTO %s (title, description) VALUES ($1, $2) RETURNING id
 		`, postgres.ItemsTable)
 
 	row := tx.QueryRow(createItemQuery, item.Title, item.Description)
@@ -61,11 +61,11 @@ func (r *ItemRepository) GetAll(userID int, listID int) ([]model.Item, error) {
 	// Get all items from "items" table
 
 	query := fmt.Sprintf(`
-		SELECT (ti.id, ti.title, ti.description, ti.completed) FROM %s ti 
+		SELECT ti.id, ti.title, ti.description, ti.completed FROM %s ti 
 		INNER JOIN %s li on li.item_id = ti.id 
 		INNER JOIN %s ul on ul.list_id = li.list_id 
-		WHERE JOIN li.list_id = $1 AND ul.user_id = $2
-		`, postgres.ItemsTable, postgres.ListsItemsTable, postgres.ListsItemsTable)
+		WHERE li.list_id = $1 AND ul.user_id = $2
+		`, postgres.ItemsTable, postgres.ListsItemsTable, postgres.UsersListsTable)
 
 	if err := r.db.Select(&items, query, listID, userID); err != nil {
 		return nil, err
@@ -78,7 +78,7 @@ func (r *ItemRepository) GetByID(userID int, itemID int) (model.Item, error) {
 	var item model.Item
 
 	query := fmt.Sprintf(`
-		SELECT (ti.id, ti.title, ti.description, ti,completed) FROM %s ti 
+		SELECT ti.id, ti.title, ti.description, ti.completed FROM %s ti 
         INNER JOIN %s li on li.item_id = ti.id 
         INNER JOIN %s ul on ul.list_id = li.list_id 
         WHERE ti.id = $1 AND ul.user_id = $2
