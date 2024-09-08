@@ -22,9 +22,9 @@ type List interface {
 type Item interface {
 	Create(userID, listID int, item model.Item) (int, error)
 	GetAll(userID, listID int) ([]model.Item, error)
-	GetByID(userID, listID int, itemID int) (model.Item, error)
-	Delete(userID, listID int, itemID int) error
-	Update(userID, listID int, input model.UpdateItemInput) error
+	GetByID(userID, itemID int) (model.Item, error)
+	Delete(userID, itemID int) error
+	Update(userID, itemID int, input model.UpdateItemInput) error
 }
 
 type Service struct {

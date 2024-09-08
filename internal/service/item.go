@@ -23,21 +23,17 @@ func (s *ItemService) Create(userID, listID int, item model.Item) (int, error) {
 }
 
 func (s *ItemService) GetAll(userID, listID int) ([]model.Item, error) {
-	//TODO implement me
-	panic("implement me")
+	return s.itemRepo.GetAll(userID, listID)
 }
 
-func (s *ItemService) GetByID(userID, listID int, itemID int) (model.Item, error) {
-	//TODO implement me
-	panic("implement me")
+func (s *ItemService) GetByID(userID, itemID int) (model.Item, error) {
+	return s.itemRepo.GetByID(userID, itemID)
 }
 
-func (s *ItemService) Delete(userID, listID int, itemID int) error {
-	//TODO implement me
-	panic("implement me")
+func (s *ItemService) Delete(userID, itemID int) error {
+	return s.itemRepo.Delete(userID, itemID)
 }
 
-func (s *ItemService) Update(userID, listID int, input model.UpdateItemInput) error {
-	//TODO implement me
-	panic("implement me")
+func (s *ItemService) Update(userID, itemID int, input model.UpdateItemInput) error {
+	return s.itemRepo.Update(userID, itemID, input)
 }

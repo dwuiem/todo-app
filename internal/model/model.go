@@ -21,16 +21,6 @@ type Item struct {
 	Completed   bool   `json:"completed"`
 }
 
-type ListUserRelation struct {
-	ListID int `json:"list_id" db:"list_id"`
-	UserID int `json:"user_id" db:"user_id"`
-}
-
-type ListItemRelation struct {
-	ListID int `json:"list_id" db:"list_id"`
-	ItemID int `json:"item_id" db:"item_id"`
-}
-
 type UpdateListInput struct {
 	Title *string `json:"title"`
 }
