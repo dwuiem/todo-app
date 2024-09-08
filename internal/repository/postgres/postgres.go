@@ -13,7 +13,7 @@ const (
 	ListsTable      = "lists"
 	UsersListsTable = "users_lists"
 	ItemsTable      = "items"
-	ListsItems      = "lists_items"
+	ListsItemsTable = "lists_items"
 )
 
 func New(cfg config.Config) *sqlx.DB {
@@ -48,7 +48,7 @@ func New(cfg config.Config) *sqlx.DB {
 		description TEXT NOT NULL,
 		completed BOOLEAN NOT NULL DEFAULT FALSE
 	);
-	CREATE TABLE IF NOT EXISTS ` + ListsItems + ` (
+	CREATE TABLE IF NOT EXISTS ` + ListsItemsTable + ` (
 		list_id INT REFERENCES ` + ListsTable + `(id) ON DELETE CASCADE,
 		item_id INT REFERENCES ` + ItemsTable + `(id) ON DELETE CASCADE,
 		PRIMARY KEY (list_id, item_id)

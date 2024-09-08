@@ -16,10 +16,15 @@ type List interface {
 	GetAll(userID int) ([]model.List, error)
 	GetByID(userID, listID int) (model.List, error)
 	Delete(userID, listID int) error
-	Update(userID int, listID int, input model.UpdateListInput) error
+	Update(userID, listID int, input model.UpdateListInput) error
 }
 
 type Item interface {
+	Create(userID, listID int, item model.Item) (int, error)
+	GetAll(userID, listID int) ([]model.Item, error)
+	GetByID(userID, listID int, itemID int) (model.Item, error)
+	Delete(userID, listID int, itemID int) error
+	Update(userID, listID int, input model.UpdateItemInput) error
 }
 
 type Service struct {
@@ -32,5 +37,6 @@ func New(repos *repository.Repository) *Service {
 	return &Service{
 		Authorization: NewAuthService(repos.Authorization),
 		List:          NewListService(repos.List),
+		Item:          NewItemService(repos.Item, repos.List),
 	}
 }

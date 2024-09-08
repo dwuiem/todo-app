@@ -19,6 +19,12 @@ type List interface {
 }
 
 type Item interface {
+	Create(listID int, item model.Item) (int, error)
+	GetAll(userID, listID int) ([]model.Item, error)
+	GetByID(userID int, itemID int) (model.Item, error)
+	//
+	Delete(listID int, itemID int) error
+	Update(listID int, input model.UpdateItemInput) error
 }
 
 type Repository struct {
@@ -31,5 +37,6 @@ func New(db *sqlx.DB) *Repository {
 	return &Repository{
 		Authorization: NewAuthRepository(db),
 		List:          NewListRepository(db),
+		Item:          NewItemRepository(db),
 	}
 }
