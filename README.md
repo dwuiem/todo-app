@@ -5,10 +5,22 @@
 This is a REST API application with simple CRUD operations with tasks and lists using Go language
 
 ## Technology Stack
-- **Language** Go (1.20+ SDK)
+- **Language** Go (1.23)
 - **Framework** `gin` - API route
 - **Authentication** JWT lib to identity users (JSON web token)
 - **Database** PostgreSQL using `sqlx` lib
+
+## Usage
+
+1. Cloning repository
+
+2. Create `.env` and add `CONFIG_PATH=./local.yaml`
+
+3. Docker Compose
+
+```sh
+docker-compose up -d
+```
 
 ## Project Structure
 ```
@@ -42,14 +54,14 @@ todo-app
   - Request Body:
     ```json
     {
-      "username": "your name"
+      "username": "your name",
       "password": "your password"
     }
     ```
   - Responce Body:
     ```json
     {
-      "id": <your id>
+      "id": 1
     }
     ```
 - **Sign in**
@@ -58,7 +70,7 @@ todo-app
   - Request Body:
     ```json
     {
-      "username": "your name"
+      "username": "your name",
       "password": "your password"
     }
     ```
@@ -82,7 +94,7 @@ To make api requests you need to include JWT token in the `Authorization` header
   - Responce Body:
     ```json
     {
-      "id": <list id>
+      "id": 1
     }
     ```
 - **...**
