@@ -1,0 +1,13 @@
+env: 'local'
+token_ttl: 1h
+salt: "jh5jL1hrb4hj"
+grpc_server:
+  port: 8081
+  timeout: 10s
+postgres:
+  host: "localhost"
+  port: "5432"
+  db_name: "test"
+  username: "user"
+  password: "password"
+

@@ -1,14 +1,4 @@
 services:
-  todo-app:
-    build: .
-    container_name: todo_app
-    restart: no
-    depends_on:
-      - postgres
-    env_file:
-      - .env
-    ports:
-      - "8080:8080"
   postgres:
     image: postgres:latest
     container_name: postgres
