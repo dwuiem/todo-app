@@ -1,18 +1,19 @@
 package handler
 
 import (
+	"context"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"todo/internal/model"
+	"todo/gen/sso"
 )
 
 func (h *Handler) signUp(c *gin.Context) {
-	var input model.User
-	if err := c.BindJSON(&input); err != nil {
+	var input sso.RegisterRequest
+	if err := c.ShouldBindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	id, err := h.services.Authorization.CreateUser(input)
+	id, err := h.client.Register(context.Background(), &input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -22,18 +23,13 @@ func (h *Handler) signUp(c *gin.Context) {
 	})
 }
 
-type signInInput struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
-
 func (h *Handler) signIn(c *gin.Context) {
-	var input signInInput
-	if err := c.BindJSON(&input); err != nil {
+	var input sso.LoginRequest
+	if err := c.ShouldBindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	token, err := h.services.Authorization.GenerateToken(input.Username, input.Password)
+	token, err := h.client.Login(context.Background(), &input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return

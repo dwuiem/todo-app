@@ -4,106 +4,147 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
-	"todo/internal/model"
+	"todo/internal/domain/model"
 )
 
-func (h *Handler) createList(c *gin.Context) {
-	userID, err := getUserId(c)
-	if err != nil {
-		return
-	}
-
-	var input model.List
-	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
-		return
-	}
-	id, err := h.services.List.Create(userID, input)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"id": id,
-	})
+type ListService interface {
+	Create(list model.List) (int64, error)
+	Update(list model.List) error
+	GetAllByUserID(userID int64) ([]model.List, error)
+	GetByID(userID int64, listID int64) (model.List, error)
+	DeleteByID(listID int64) error
 }
 
-type allListsResponse struct {
-	Data []model.List `json:"data"`
+type listRequest struct {
+	Title string `json:"title"`
+}
+
+type listResponse struct {
+	Title string `json:"title"`
+}
+
+type listItemResponse struct {
+	ID    int64  `json:"id"`
+	Title string `json:"title"`
+}
+
+type listsResponse struct {
+	list []listItemResponse
 }
 
 func (h *Handler) getAllLists(c *gin.Context) {
-	userID, err := getUserId(c)
+	userID, err := getUserID(c)
 	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
-	lists, err := h.services.List.GetAll(userID)
+	// TODO: Handle Error
+	lists, err := h.service.List.GetAllByUserID(userID)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, allListsResponse{
-		Data: lists,
-	})
+
+	listsResponse := listsResponse{
+		list: make([]listItemResponse, len(lists)),
+	}
+	for i, list := range lists {
+		listsResponse.list[i] = listItemResponse{
+			ID:    list.ID,
+			Title: list.Title,
+		}
+	}
+	if len(lists) == 0 {
+		c.JSON(http.StatusOK, "You don't have any lists")
+	} else {
+		c.JSON(http.StatusOK, listsResponse)
+	}
 }
 
 func (h *Handler) getListByID(c *gin.Context) {
-	userID, err := getUserId(c)
+	userID, err := getUserID(c)
 	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
-	id, err := strconv.Atoi(c.Param("id"))
+
+	listID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
-	}
-	list, err := h.services.List.GetByID(userID, id)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		c.AbortWithStatusJSON(http.StatusBadRequest, "invalid list ID")
 		return
 	}
-	c.JSON(http.StatusOK, list)
+
+	// TODO: Handle error
+	list, err := h.service.List.GetByID(userID, listID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	resp := listResponse{
+		Title: list.Title,
+	}
+	c.JSON(http.StatusOK, resp)
 }
 
 func (h *Handler) updateList(c *gin.Context) {
-	userID, err := getUserId(c)
+	userID, err := getUserID(c)
 	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
-	id, err := strconv.Atoi(c.Param("id"))
+
+	listID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "Invalid ID param")
+		c.AbortWithStatusJSON(http.StatusBadRequest, "invalid list ID")
 		return
 	}
-	var input model.UpdateListInput
-	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+
+	if _, err := h.service.List.GetByID(userID, listID); err != nil {
+		c.AbortWithStatusJSON(http.StatusNotFound, "list not found")
 		return
 	}
-	err = h.services.List.Update(userID, id, input)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+
+	var req listRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"invalid update request": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, StatusResponse{
-		Status: "ok",
-	})
+
+	list := model.List{
+		ID:    listID,
+		Title: req.Title,
+	}
+
+	// TODO: Handle error
+	if err := h.service.List.Update(list); err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"updated list": list})
 }
 
 func (h *Handler) deleteList(c *gin.Context) {
-	userID, err := getUserId(c)
+	userID, err := getUserID(c)
 	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
-	id, err := strconv.Atoi(c.Param("id"))
+
+	listID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
-	}
-	err = h.services.List.Delete(userID, id)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		c.AbortWithStatusJSON(http.StatusBadRequest, "invalid list ID")
 		return
 	}
-	c.JSON(http.StatusOK, StatusResponse{
-		Status: "ok",
-	})
+
+	if _, err := h.service.List.GetByID(userID, listID); err != nil {
+		c.AbortWithStatusJSON(http.StatusNotFound, "list not found")
+		return
+	}
+
+	if err := h.service.List.DeleteByID(listID); err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"deleted list": listID})
 }

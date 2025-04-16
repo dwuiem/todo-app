@@ -2,15 +2,40 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+	"log/slog"
+	"todo/internal/config"
 	"todo/internal/service"
+	"todo/internal/transport/client/sso/grpc"
 )
 
-type Handler struct {
-	services *service.Service
+type Service struct {
+	Task TaskService
+	List ListService
 }
 
-func New(services *service.Service) *Handler {
-	return &Handler{services: services}
+type Handler struct {
+	secret  string
+	log     *slog.Logger
+	client  *grpc.Client
+	service Service
+}
+
+func New(
+	cfg *config.Config,
+	log *slog.Logger,
+	client *grpc.Client,
+	taskService *service.TaskService,
+	listService *service.ListService,
+) *Handler {
+	return &Handler{
+		secret: cfg.AppSecret,
+		log:    log,
+		client: client,
+		service: Service{
+			Task: *taskService,
+			List: *listService,
+		},
+	}
 }
 
 func (h *Handler) InitRoutes() *gin.Engine {
@@ -24,22 +49,22 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	{
 		lists := api.Group("/lists")
 		{
-			lists.POST("/", h.createList)
+			lists.POST("/", func(context *gin.Context) {})
 			lists.GET("/", h.getAllLists)
 			lists.GET("/:id", h.getListByID)
 			lists.PUT("/:id", h.updateList)
 			lists.DELETE("/:id", h.deleteList)
-			items := lists.Group(":id/items")
+			items := lists.Group(":id/tasks")
 			{
-				items.POST("/", h.createItem)
-				items.GET("/", h.getAllItems)
+				items.POST("/", h.createTask)
+				items.GET("/", h.getAllTasksByList)
 			}
 		}
-		items := api.Group("/items")
+		items := api.Group("/tasks")
 		{
-			items.GET("/:id", h.getItem)
-			items.PUT("/:id", h.updateItem)
-			items.DELETE("/:id", h.deleteItem)
+			items.GET("/:id", h.getTaskByID)
+			items.PUT("/:id", h.updateTask)
+			items.DELETE("/:id", h.deleteTask)
 		}
 	}
 	return router

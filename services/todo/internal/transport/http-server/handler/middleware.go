@@ -2,8 +2,11 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -18,8 +21,9 @@ func (h *Handler) userIdentity(c *gin.Context) {
 		newErrorResponse(c, http.StatusUnauthorized, "Invalid Authorization header")
 		return
 	}
+
 	// JWT Token parse
-	userID, err := h.services.Authorization.ParseToken(headerParts[1])
+	userID, err := h.parseUserIDFromToken(headerParts[1])
 	if err != nil {
 		newErrorResponse(c, http.StatusUnauthorized, err.Error())
 		return
@@ -27,16 +31,23 @@ func (h *Handler) userIdentity(c *gin.Context) {
 	c.Set("userID", userID)
 }
 
-func getUserId(c *gin.Context) (int, error) {
-	id, ok := c.Get("userID")
-	if !ok {
-		newErrorResponse(c, http.StatusUnauthorized, "No user id found")
-		return -1, errors.New("No user id found")
+func getUserID(c *gin.Context) (int64, error) {
+	return strconv.ParseInt(c.Query("userID"), 10, 64)
+}
+
+func (h *Handler) parseUserIDFromToken(tokenString string) (int64, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(h.secret), nil
+	})
+	if err != nil {
+		return -1, err
 	}
-	res, ok := id.(int)
-	if !ok {
-		newErrorResponse(c, http.StatusUnauthorized, "Invalid type of user id")
-		return -1, errors.New("Invalid type of user id")
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		userID := claims["userID"].(int64)
+		return userID, nil
 	}
-	return res, nil
+	return -1, errors.New("invalid token")
 }

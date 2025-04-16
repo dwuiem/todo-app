@@ -1,44 +1,60 @@
 package main
 
 import (
-	"log"
+	"context"
 	"log/slog"
-	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+	"todo/internal/app"
 	"todo/internal/config"
-	"todo/internal/repository"
-	"todo/internal/repository/postgres"
-	"todo/internal/service"
-	ssogrpc "todo/internal/transport/client/sso/grpc"
-	"todo/internal/transport/http-server/handler"
 )
 
 func main() {
 	cfg := config.MustLoad()
-	db := postgres.New(*cfg)
-	repos := repository.New(db)
-	services := service.New(repos)
-	handlers := handler.New(services)
 
-	_, err := ssogrpc.New(
-		cfg.Clients.SSO.Address,
-		cfg.Clients.SSO.Timeout,
-		cfg.Clients.SSO.RetriesCount,
+	// Setup logger
+	log := setupLogger(cfg.Env)
+	log.Info("Start application ...",
+		slog.String("env", cfg.Env),
+		slog.Any("config", cfg),
 	)
 
-	if err != nil {
-		log.Fatal(err)
-	}
+	application := app.New(log, cfg)
 
-	srv := &http.Server{
-		Addr:         cfg.HTTPServer.Addr,
-		Handler:      handlers.InitRoutes(),
-		ReadTimeout:  cfg.HTTPServer.Timeout,
-		WriteTimeout: cfg.HTTPServer.Timeout,
-		IdleTimeout:  cfg.HTTPServer.IdleTimeout,
+	serverError := make(chan error, 1)
+
+	go func() {
+		serverError <- application.MustRun()
+	}()
+
+	// Graceful shutdown
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+
+	select {
+	case err := <-serverError:
+		log.Info("Application exited with error", slog.String("error", err.Error()))
+	case sig := <-stop:
+		log.Info("Got signal. Stopping application...", slog.String("signal", sig.String()))
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := application.Stop(ctx); err != nil {
+			log.Info("Application exited with error", slog.String("error", err.Error()))
+		} else {
+			log.Info("Application exited gracefully", slog.String("error", err.Error()))
+		}
 	}
-	err = srv.ListenAndServe()
-	if err != nil {
-		log.Fatal("Failed to start server", err.Error())
+}
+
+func setupLogger(env string) *slog.Logger {
+	var logger *slog.Logger
+	switch env {
+	case "local":
+		logger = slog.New(
+			slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
+		)
 	}
-	log.Fatal("Stopping server", slog.String("address", cfg.HTTPServer.Addr))
+	return logger
 }
