@@ -4,17 +4,22 @@ import (
 	"github.com/gin-gonic/gin"
 	"log/slog"
 	"todo/internal/config"
-	"todo/internal/service"
+	"todo/internal/storage/postgres"
 	"todo/internal/transport/client/sso/grpc"
 )
 
 type Service struct {
-	Task TaskService
-	List ListService
+	Task TaskStorage
+	List ListStorage
+}
+
+type AppInfo struct {
+	id     int
+	secret string
 }
 
 type Handler struct {
-	secret  string
+	AppInfo
 	log     *slog.Logger
 	client  *grpc.Client
 	service Service
@@ -24,16 +29,19 @@ func New(
 	cfg *config.Config,
 	log *slog.Logger,
 	client *grpc.Client,
-	taskService *service.TaskService,
-	listService *service.ListService,
+	taskStorage *postgres.TaskStorage,
+	listStorage *postgres.ListStorage,
 ) *Handler {
 	return &Handler{
-		secret: cfg.AppSecret,
+		AppInfo: AppInfo{
+			cfg.AppId,
+			cfg.AppSecret,
+		},
 		log:    log,
 		client: client,
 		service: Service{
-			Task: *taskService,
-			List: *listService,
+			Task: taskStorage,
+			List: listStorage,
 		},
 	}
 }
@@ -49,7 +57,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	{
 		lists := api.Group("/lists")
 		{
-			lists.POST("/", func(context *gin.Context) {})
+			lists.POST("/", h.createList)
 			lists.GET("/", h.getAllLists)
 			lists.GET("/:id", h.getListByID)
 			lists.PUT("/:id", h.updateList)

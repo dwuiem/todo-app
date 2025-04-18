@@ -5,9 +5,9 @@ grpc_server:
   port: 8081
   timeout: 10s
 postgres:
-  host: "localhost"
+  host: "sso-db"
   port: "5432"
-  db_name: "test"
+  db_name: "sso"
   username: "user"
   password: "password"
 

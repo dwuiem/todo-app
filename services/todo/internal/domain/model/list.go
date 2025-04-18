@@ -5,7 +5,3 @@ type List struct {
 	Title  string
 	UserID int64
 }
-
-type ListUpdate struct {
-	Title string
-}

@@ -12,6 +12,7 @@ type Config struct {
 	Env         string        `yaml:"env"`
 	StoragePath string        `yaml:"storage_path"`
 	AppSecret   string        `yaml:"app_secret" env-required:"true" env:"APP_SECRET"`
+	AppId       int           `yaml:"app_id" env-required:"true" env:"APP_ID"`
 	HTTPServer  HTTPServer    `yaml:"http_server"`
 	PostgresDB  PostgresDB    `yaml:"postgres_db"`
 	Clients     ClientsConfig `yaml:"clients"`

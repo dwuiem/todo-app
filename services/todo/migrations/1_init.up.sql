@@ -1,13 +1,13 @@
-CREATE TABLE IF NOT EXISTS projects (
+CREATE TABLE IF NOT EXISTS lists (
     id SERIAL PRIMARY KEY,
     title TEXT NOT NULL,
     user_id INT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS todo_items (
+CREATE TABLE IF NOT EXISTS tasks (
     id SERIAL PRIMARY KEY,
     title TEXT NOT NULL,
-    description TEXT NOT NULL,
+    description TEXT,
     completed BOOLEAN NOT NULL DEFAULT FALSE,
-    project_id INT NOT NULL REFERENCES projects
+    list_id INT NOT NULL REFERENCES lists(id) ON DELETE CASCADE
 );

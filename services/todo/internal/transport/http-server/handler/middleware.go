@@ -13,19 +13,19 @@ import (
 func (h *Handler) userIdentity(c *gin.Context) {
 	header := c.GetHeader("Authorization")
 	if header == "" {
-		newErrorResponse(c, http.StatusUnauthorized, "No Authorization header")
+		c.AbortWithStatusJSON(http.StatusUnauthorized, "No Authorization header")
 		return
 	}
 	headerParts := strings.Split(header, " ")
 	if len(headerParts) != 2 {
-		newErrorResponse(c, http.StatusUnauthorized, "Invalid Authorization header")
+		c.AbortWithStatusJSON(http.StatusUnauthorized, "Invalid Authorization header")
 		return
 	}
 
 	// JWT Token parse
 	userID, err := h.parseUserIDFromToken(headerParts[1])
 	if err != nil {
-		newErrorResponse(c, http.StatusUnauthorized, err.Error())
+		c.AbortWithStatusJSON(http.StatusUnauthorized, err.Error())
 		return
 	}
 	c.Set("userID", userID)

@@ -1,16 +1,43 @@
 services:
-  postgres:
+  todo-db:
     image: postgres:latest
-    container_name: postgres
+    container_name: todo-db
     restart: no
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: test
+      POSTGRES_DB: todo
     ports:
       - "5432:5432"
     volumes:
-      - pg_data:/var/lib/postgresql/data
-
+      - todo_pg_data:/var/lib/postgresql/data
+  todo:
+    build: services/todo
+    container_name: todo
+    ports:
+      - "8080:8080"
+    depends_on:
+      - sso
+      - todo-db
+  sso-db:
+    image: postgres:latest
+    container_name: sso-db
+    restart: no
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: sso
+    ports:
+      - "5433:5432"
+    volumes:
+      - sso_pg_data:/var/lib/postgresql/data
+  sso:
+    build: services/sso
+    container_name: sso
+    ports:
+      - "8081:8080"
+    depends_on:
+      - sso-db
 volumes:
-  pg_data:
+  sso_pg_data:
+  todo_pg_data:

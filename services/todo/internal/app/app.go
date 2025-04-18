@@ -5,8 +5,6 @@ import (
 	"log/slog"
 	"net/http"
 	"todo/internal/config"
-	"todo/internal/service"
-	"todo/internal/storage"
 	"todo/internal/storage/postgres"
 	ssogrpc "todo/internal/transport/client/sso/grpc"
 	"todo/internal/transport/http-server/handler"
@@ -35,9 +33,7 @@ func New(log *slog.Logger, cfg *config.Config) *App {
 	taskStorage := postgres.NewTaskStorage(storage)
 	listStorage := postgres.NewListStorage(storage)
 
-	taskService := service.NewTaskService(taskStorage)
-	listService := service.NewListService(listStorage)
-	handlers := handler.New(log, serv, client, cfg.AppSecret)
+	handlers := handler.New(cfg, log, client, taskStorage, listStorage)
 
 	srv := &http.Server{
 		Addr:         cfg.HTTPServer.Addr,

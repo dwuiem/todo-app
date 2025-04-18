@@ -1,18 +1,20 @@
 package handler
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
 	"todo/internal/domain/model"
+	"todo/internal/storage"
 )
 
-type ListService interface {
-	Create(list model.List) (int64, error)
-	Update(list model.List) error
-	GetAllByUserID(userID int64) ([]model.List, error)
-	GetByID(userID int64, listID int64) (model.List, error)
-	DeleteByID(listID int64) error
+type ListStorage interface {
+	Create(c *gin.Context, list model.List) (int64, error)
+	Update(c *gin.Context, list model.List) error
+	GetAllByUserID(c *gin.Context, userID int64) ([]model.List, error)
+	GetByID(c *gin.Context, userID int64, listID int64) (model.List, error)
+	DeleteByID(c *gin.Context, listID int64) error
 }
 
 type listRequest struct {
@@ -20,6 +22,7 @@ type listRequest struct {
 }
 
 type listResponse struct {
+	Id    int64  `json:"id"`
 	Title string `json:"title"`
 }
 
@@ -32,14 +35,41 @@ type listsResponse struct {
 	list []listItemResponse
 }
 
+func (h *Handler) createList(c *gin.Context) {
+	userID, err := getUserID(c)
+	if err != nil {
+		return
+	}
+
+	var req listRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	list := model.List{
+		Title:  req.Title,
+		UserID: userID,
+	}
+
+	id, err := h.service.List.Create(c, list)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, listResponse{
+		Id:    id,
+		Title: req.Title,
+	})
+}
+
 func (h *Handler) getAllLists(c *gin.Context) {
 	userID, err := getUserID(c)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
-	// TODO: Handle Error
-	lists, err := h.service.List.GetAllByUserID(userID)
+
+	lists, err := h.service.List.GetAllByUserID(c, userID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -48,6 +78,7 @@ func (h *Handler) getAllLists(c *gin.Context) {
 	listsResponse := listsResponse{
 		list: make([]listItemResponse, len(lists)),
 	}
+
 	for i, list := range lists {
 		listsResponse.list[i] = listItemResponse{
 			ID:    list.ID,
@@ -74,9 +105,12 @@ func (h *Handler) getListByID(c *gin.Context) {
 		return
 	}
 
-	// TODO: Handle error
-	list, err := h.service.List.GetByID(userID, listID)
+	list, err := h.service.List.GetByID(c, userID, listID)
 	if err != nil {
+		if errors.Is(err, storage.ErrListNotFound) {
+			c.AbortWithStatusJSON(http.StatusNotFound, "List not found")
+			return
+		}
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -100,7 +134,7 @@ func (h *Handler) updateList(c *gin.Context) {
 		return
 	}
 
-	if _, err := h.service.List.GetByID(userID, listID); err != nil {
+	if _, err := h.service.List.GetByID(c, userID, listID); err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, "list not found")
 		return
 	}
@@ -116,8 +150,11 @@ func (h *Handler) updateList(c *gin.Context) {
 		Title: req.Title,
 	}
 
-	// TODO: Handle error
-	if err := h.service.List.Update(list); err != nil {
+	if err := h.service.List.Update(c, list); err != nil {
+		if errors.Is(err, storage.ErrListNotFound) {
+			c.AbortWithStatusJSON(http.StatusNotFound, "List not found")
+			return
+		}
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -137,12 +174,16 @@ func (h *Handler) deleteList(c *gin.Context) {
 		return
 	}
 
-	if _, err := h.service.List.GetByID(userID, listID); err != nil {
+	if _, err := h.service.List.GetByID(c, userID, listID); err != nil {
+		if errors.Is(err, storage.ErrListNotFound) {
+			c.AbortWithStatusJSON(http.StatusNotFound, "List not found")
+			return
+		}
 		c.AbortWithStatusJSON(http.StatusNotFound, "list not found")
 		return
 	}
 
-	if err := h.service.List.DeleteByID(listID); err != nil {
+	if err := h.service.List.DeleteByID(c, listID); err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

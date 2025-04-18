@@ -1,17 +1,18 @@
 env: 'local'
-app_secret: "todo_secret"
+app_secret: "secret"
+app_id: 1
 http_server:
-  address: "localhost:8080"
+  address: "0.0.0.0:8080"
   timeout: 4s
   idle_timeout: 60s
 postgres_db:
-  host: "postgres"
+  host: "todo-db"
   port: "5432"
-  db_name: "test"
+  db_name: "todo"
   username: "user"
   password: "password"
 clients:
   sso:
-    address: "localhost:8081"
+    address: "sso:8081"
     timeout: 10s
     retries_count: 3
