@@ -2,21 +2,26 @@
 
 ## Introduction
 
-This is a REST API application with simple CRUD operations with tasks and lists using Go language
+This is a microservice application with simple CRUD operations with tasks and lists with authentication
 
 ## Technology Stack
 - **Language** Go (1.23)
+- **gRPC** interaction between microservices
 - **Framework** `gin` - API route
 - **Authentication** JWT lib to identity users (JSON web token)
-- **Database** PostgreSQL using `sqlx` lib
+- **Database** PostgreSQL using `pgx` lib
+- **Migrations** using `github.com/golang-migrate/migrate/v4`
+- 
 
 ## Usage
 
 1. Cloning repository
 
-2. Create `.env` and add `CONFIG_PATH=./local.yaml`
+```sh
+git clone https://github.com/dwuiem/todo-app.git
+```
 
-3. Docker Compose
+2. Docker Compose
 
 ```sh
 docker-compose up -d
@@ -25,24 +30,14 @@ docker-compose up -d
 ## Project Structure
 ```
 todo-app
-├── cmd                  # Entry point of app
+├── api                     # API Protobuf contracts 
 │    └── main.go
-├── config               # Configuration
-│    └── local.yaml
-├── internal             # Inner packages
-│    ├── config          # Configurate project
-│    │    └── config.go  
-│    ├── handler         # HTTP Request handlers
-│    │    ├── ...
-│    ├── model           # Data models defenitions
-│    │    ├── ...
-│    ├── reposirty       # Database interactions
-│    │    ├── postgres
-│    │    │    └── postgres.go 
-│    │    ├── ...
-│    └── service
-└── go.mod               # Go dependencies
-
+├── services             
+│    ├── sso                # SSO service (GRPC server)
+│    └── todo               # TODO service (HTTP server)
+├── .gitignore
+├── README.md
+└── docker-compose.yaml     # Docker Compose
 ```
 
 ## API Usage
@@ -81,20 +76,22 @@ todo-app
     }
     ```
 ### Authorized Requests
-To make api requests you need to include JWT token in the `Authorization` header
-- **Create List**
-  - URL: `/api/lists`
-  - Method: `POST`
-  - Request Body:
-    ```json
-    {
-      "title": "your title"
-    }
-    ```
-  - Responce Body:
-    ```json
-    {
-      "id": 1
-    }
-    ```
-- **...**
+To make api requests you need to include JWT token in the `Authorization` header. For example
+
+
+**Create List Request**
+- Authorization Header: "your bearer token"
+- URL: `/api/lists`
+- Method: `POST`
+- Request Body:
+  ```json
+  {
+    "title": "your title"
+  }
+  ```
+- Responce Body:
+  ```json
+  {
+    "id": 1
+  }
+  ```
