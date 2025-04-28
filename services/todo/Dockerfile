@@ -1,4 +1,4 @@
-FROM golang:1.23.0-alpine
+FROM golang:1.24.2-alpine
 
 ENV CONFIG_PATH=/app/config/local.yaml
 
