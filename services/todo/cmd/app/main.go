@@ -43,7 +43,7 @@ func main() {
 		if err := application.Stop(ctx); err != nil {
 			log.Info("Application exited with error", slog.String("error", err.Error()))
 		} else {
-			log.Info("Application exited gracefully", slog.String("error", err.Error()))
+			log.Info("Application exited gracefully")
 		}
 	}
 }
