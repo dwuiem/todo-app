@@ -31,7 +31,8 @@ docker-compose up -d
 ```
 todo-app
 ├── api                     # API Protobuf contracts 
-│    └── main.go
+│    ├── proto
+│    └── Makefile
 ├── services             
 │    ├── sso                # SSO service (GRPC server)
 │    └── todo               # TODO service (HTTP server)
@@ -39,59 +40,3 @@ todo-app
 ├── README.md
 └── docker-compose.yaml     # Docker Compose
 ```
-
-## API Usage
-
-### User Authentication
-- **Sign Up**
-  - URL: `/auth/sign-up`
-  - Method: `POST`
-  - Request Body:
-    ```json
-    {
-      "username": "your name",
-      "password": "your password"
-    }
-    ```
-  - Responce Body:
-    ```json
-    {
-      "id": 1
-    }
-    ```
-- **Sign in**
-  - URL: `/auth/sign-in`
-  - Method: `POST`
-  - Request Body:
-    ```json
-    {
-      "username": "your name",
-      "password": "your password"
-    }
-    ```
-  - Responce Body:
-    ```json
-    {
-      "token": "your token"
-    }
-    ```
-### Authorized Requests
-To make api requests you need to include JWT token in the `Authorization` header. For example
-
-
-**Create List Request**
-- Authorization Header: "your bearer token"
-- URL: `/api/lists`
-- Method: `POST`
-- Request Body:
-  ```json
-  {
-    "title": "your title"
-  }
-  ```
-- Responce Body:
-  ```json
-  {
-    "id": 1
-  }
-  ```

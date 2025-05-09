@@ -12,7 +12,7 @@ services:
     volumes:
       - todo_pg_data:/var/lib/postgresql/data
   todo:
-    build: services/todo
+    build: todo
     container_name: todo
     ports:
       - "8080:8080"
@@ -32,7 +32,7 @@ services:
     volumes:
       - sso_pg_data:/var/lib/postgresql/data
   sso:
-    build: services/sso
+    build: sso
     container_name: sso
     ports:
       - "8081:8080"

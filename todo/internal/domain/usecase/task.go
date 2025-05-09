@@ -43,12 +43,15 @@ func (t *Task) Create(ctx context.Context, userID, listID uuid.UUID, in entity.C
 	if len(strings.TrimSpace(in.Description)) == 0 {
 		return uuid.Nil, ErrTaskDescriptionNotValid
 	}
+	if in.Deadline.Before(time.Now()) {
+		return uuid.Nil, ErrDeadlineNotValid
+	}
 	return t.repo.Create(ctx, entity.Task{
 		ListID:      listID,
 		CreatedAt:   time.Now(),
 		Description: in.Description,
 		Completed:   in.Completed,
-		Deadline:    nil,
+		Deadline:    in.Deadline,
 	})
 }
 
