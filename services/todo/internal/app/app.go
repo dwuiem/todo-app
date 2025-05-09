@@ -2,12 +2,17 @@ package app
 
 import (
 	"context"
+	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"log/slog"
 	"net/http"
+	"todo/internal/adapter/controller/http/handler"
+	"todo/internal/adapter/controller/http/middleware"
+	"todo/internal/adapter/repository/postgres"
+	sso "todo/internal/adapter/sso/grpc"
 	"todo/internal/config"
-	"todo/internal/storage/postgres"
-	ssogrpc "todo/internal/transport/client/sso/grpc"
-	"todo/internal/transport/http-server/handler"
+	"todo/internal/domain/usecase"
 )
 
 type App struct {
@@ -16,7 +21,8 @@ type App struct {
 }
 
 func New(log *slog.Logger, cfg *config.Config) *App {
-	client, err := ssogrpc.New(
+	// GRPC Client
+	client, err := sso.New(
 		cfg.Clients.SSO.Address,
 		cfg.Clients.SSO.Timeout,
 		cfg.Clients.SSO.RetriesCount,
@@ -25,19 +31,65 @@ func New(log *slog.Logger, cfg *config.Config) *App {
 		panic(err)
 	}
 
-	storage, err := postgres.New(cfg)
+	// Postgres
+	conn, err := pgxpool.New(context.Background(),
+		fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+			cfg.PostgresDB.Username,
+			cfg.PostgresDB.Password,
+			cfg.PostgresDB.Host,
+			cfg.PostgresDB.Port,
+			cfg.PostgresDB.DBName,
+		),
+	)
 	if err != nil {
 		panic(err)
 	}
 
-	taskStorage := postgres.NewTaskStorage(storage)
-	listStorage := postgres.NewListStorage(storage)
+	// Repositories
+	taskRep := postgres.NewTask(conn)
+	listRep := postgres.NewList(conn)
 
-	handlers := handler.New(cfg, log, client, taskStorage, listStorage)
+	// Use cases
+	listUseCase := usecase.NewList(listRep, log)
+	taskUseCase := usecase.NewTask(taskRep, listUseCase, log)
+
+	// Handlers
+	authHandler := handler.NewAuthHandler(client, cfg.AppId)
+	listHandler := handler.NewListHandler(listUseCase)
+	taskHandler := handler.NewTaskHandler(taskUseCase)
+
+	router := gin.New()
+	auth := router.Group("/auth")
+	{
+		auth.POST("/sign-up", authHandler.SignUp())
+		auth.POST("/sign-in", authHandler.SignIn())
+	}
+	api := router.Group("/api", middleware.AuthMiddleware([]byte(cfg.AppSecret), client))
+	{
+		lists := api.Group("/lists")
+		{
+			lists.POST("/", listHandler.Create())
+			lists.GET("/", listHandler.GetAll())
+			lists.GET("/:id", listHandler.GetByID())
+			lists.PUT("/:id", listHandler.UpdateByID())
+			lists.DELETE("/:id", listHandler.DeleteByID())
+			items := lists.Group(":id/tasks")
+			{
+				items.POST("/", taskHandler.Create())
+				items.GET("/", taskHandler.GetByListID())
+			}
+		}
+		items := api.Group("/tasks")
+		{
+			items.GET("/:id", taskHandler.GetByID())
+			items.PUT("/:id", taskHandler.UpdateByID())
+			items.DELETE("/:id", taskHandler.DeleteByID())
+		}
+	}
 
 	srv := &http.Server{
 		Addr:         cfg.HTTPServer.Addr,
-		Handler:      handlers.InitRoutes(),
+		Handler:      router,
 		ReadTimeout:  cfg.HTTPServer.Timeout,
 		WriteTimeout: cfg.HTTPServer.Timeout,
 		IdleTimeout:  cfg.HTTPServer.IdleTimeout,

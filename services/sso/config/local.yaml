@@ -1,4 +1,4 @@
-env: 'local'
+  env: 'local'
 token_ttl: 1h
 salt: "jh5jL1hrb4hj"
 grpc_server:
