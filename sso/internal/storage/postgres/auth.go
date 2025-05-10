@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"sso/internal/domain/model"
@@ -18,20 +19,20 @@ func (s Storage) SaveUser(
 	ctx context.Context,
 	username string,
 	passwordHash string,
-) (int64, error) {
+) (uuid.UUID, error) {
 	const op = "storage.postgres.SaveUser"
 
 	const query = "INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id"
-	row := s.conn.QueryRow(ctx, query, username, string(passwordHash))
+	row := s.conn.QueryRow(ctx, query, username, passwordHash)
 
-	var id int64
+	var id uuid.UUID
 	err := row.Scan(&id)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == ErrUniqueViolation {
-			return -1, storage.ErrUserExists
+			return uuid.Nil, storage.ErrUserExists
 		}
-		return -1, fmt.Errorf("%s %s", op, err)
+		return uuid.Nil, fmt.Errorf("%s %s", op, err)
 	}
 
 	return id, nil
@@ -79,7 +80,7 @@ func (s Storage) GetApp(ctx context.Context, appID int) (model.App, error) {
 	return app, nil
 }
 
-func (s Storage) IsAdmin(ctx context.Context, userID int64) (bool, error) {
+func (s Storage) IsAdmin(ctx context.Context, userID uuid.UUID) (bool, error) {
 	const op = "storage.postgres.IsAdmin"
 
 	const query = "SELECT is_admin FROM users WHERE id = $1"

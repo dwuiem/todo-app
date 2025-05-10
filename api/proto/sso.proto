@@ -16,7 +16,7 @@ message RegisterRequest {
 }
 
 message RegisterResponse {
-  int64 user_id = 1;
+  string user_id = 1;
 }
 
 message LoginRequest {
@@ -30,7 +30,7 @@ message LoginResponse {
 }
 
 message IsAdminRequest {
-  int64 user_id = 1;
+  string user_id = 1;
 }
 
 message IsAdminResponse {

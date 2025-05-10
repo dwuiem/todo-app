@@ -5,6 +5,7 @@ import (
 	"crypto/sha1"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 	"log/slog"
 	"sso/internal/domain/model"
 	"sso/internal/lib/jwt"
@@ -31,13 +32,13 @@ type Storage interface {
 		ctx context.Context,
 		username string,
 		passwordHash string,
-	) (userId int64, err error)
+	) (userId uuid.UUID, err error)
 	GetUser(
 		ctx context.Context,
 		username string,
 	) (model.User, error)
 	GetApp(ctx context.Context, appID int) (model.App, error)
-	IsAdmin(ctx context.Context, userID int64) (bool, error)
+	IsAdmin(ctx context.Context, userID uuid.UUID) (bool, error)
 }
 
 func New(log *slog.Logger, storage Storage, tokenTTL time.Duration) *Auth {
@@ -94,7 +95,7 @@ func (a *Auth) Login(
 	return token, nil
 }
 
-func (a *Auth) Register(ctx context.Context, username string, password string) (int64, error) {
+func (a *Auth) Register(ctx context.Context, username string, password string) (uuid.UUID, error) {
 	const op = "auth.Register"
 	log := a.log.With(slog.String("op", op), slog.String("username", username))
 
@@ -102,15 +103,15 @@ func (a *Auth) Register(ctx context.Context, username string, password string) (
 	id, err := a.storage.SaveUser(ctx, username, passwordHash)
 	if err != nil {
 		if errors.Is(err, storage.ErrUserExists) {
-			return -1, ErrUserExists
+			return uuid.Nil, ErrUserExists
 		}
-		return -1, fmt.Errorf("%s: %w", op, err)
+		return uuid.Nil, fmt.Errorf("%s: %w", op, err)
 	}
 	log.Info("User registered")
 	return id, nil
 }
 
-func (a *Auth) IsAdmin(ctx context.Context, userID int64) (bool, error) {
+func (a *Auth) IsAdmin(ctx context.Context, userID uuid.UUID) (bool, error) {
 	const op = "auth.IsAdmin"
 	log := a.log.With(slog.String("op", op), slog.String("user_id", fmt.Sprint(userID)))
 

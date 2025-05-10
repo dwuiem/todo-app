@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -27,10 +28,10 @@ type Service interface {
 		ctx context.Context,
 		username string,
 		password string,
-	) (userId int64, err error)
+	) (userId uuid.UUID, err error)
 	IsAdmin(
 		ctx context.Context,
-		userId int64,
+		userId uuid.UUID,
 	) (isAdmin bool, err error)
 }
 

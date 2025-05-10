@@ -5,7 +5,7 @@ import (
 	"google.golang.org/grpc"
 	"log/slog"
 	"net"
-	"sso/internal/transport/grpc/auth"
+	"sso/internal/adapter/controller/grpc/auth"
 )
 
 type GRPCApp struct {
