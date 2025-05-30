@@ -28,18 +28,28 @@ docker-compose up -d
 
 ## Project Structure
 ```
-.
+todo-app
+├── README.md
 ├── api
+│   ├── Makefile
 │   ├── gen
 │   │   └── sso
+│   ├── go.mod
+│   ├── go.sum
 │   └── proto
+│       └── sso.proto
+├── docker-compose.yaml
 ├── sso
+│   ├── Dockerfile
 │   ├── cmd
 │   │   ├── app
 │   │   └── migrate
 │   ├── config
+│   │   └── local.yaml
 │   ├── gen
 │   │   └── sso
+│   ├── go.mod
+│   ├── go.sum
 │   ├── internal
 │   │   ├── adapter
 │   │   ├── app
@@ -49,16 +59,24 @@ docker-compose up -d
 │   │   ├── service
 │   │   └── storage
 │   └── migrations
+│       ├── 1_init.down.sql
+│       └── 1_init.up.sql
 └── todo
+    ├── Dockerfile
     ├── cmd
     │   ├── app
     │   └── migrate
     ├── config
+    │   └── local.yaml
     ├── gen
     │   └── sso
+    ├── go.mod
+    ├── go.sum
     ├── internal
     │   ├── adapter
     │   ├── app
     │   └── domain
     └── migrations
+        ├── 1_init.down.sql
+        └── 1_init.up.sql
 ```
