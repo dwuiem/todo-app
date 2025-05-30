@@ -6,13 +6,13 @@ http_server:
   timeout: 4s
   idle_timeout: 60s
 postgres_db:
-  host: "todo-db"
+  host: "localhost"
   port: "5432"
   db_name: "todo"
   username: "user"
   password: "password"
 clients:
   sso:
-    address: "sso:8081"
+    address: "localhost:8081"
     timeout: 10s
     retries_count: 3

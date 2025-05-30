@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"log/slog"
 	"net/http"
 	"strings"
 	"todo/internal/adapter/sso/grpc"
@@ -17,6 +18,7 @@ type auth struct {
 }
 
 func AuthMiddleware(secret []byte, client *grpc.Client) gin.HandlerFunc {
+	slog.Debug("AuthMiddleware")
 	auth := &auth{
 		secret: secret,
 		client: client,
@@ -42,7 +44,7 @@ func (a *auth) userIdentityMiddleware(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, err.Error())
 		return
 	}
-	c.Set("userID", userID)
+	c.Set("userID", userID.String())
 }
 
 func (a *auth) parseUserIDFromToken(tokenString string) (uuid.UUID, error) {
@@ -56,7 +58,14 @@ func (a *auth) parseUserIDFromToken(tokenString string) (uuid.UUID, error) {
 		return uuid.Nil, err
 	}
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		userID := claims["userID"].(uuid.UUID)
+		userIDStr, ok := claims["user_id"].(string)
+		if !ok {
+			return uuid.Nil, errors.New("invalid user id claim")
+		}
+		userID, err := uuid.Parse(userIDStr)
+		if err != nil {
+			return uuid.Nil, errors.New("invalid user uuid")
+		}
 		return userID, nil
 	}
 	return uuid.Nil, errors.New("invalid token")

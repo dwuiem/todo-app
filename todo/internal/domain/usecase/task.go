@@ -23,29 +23,37 @@ type listChecker interface {
 }
 
 type Task struct {
-	repo   TaskRepository
-	list   listChecker
-	logger *slog.Logger
+	repo TaskRepository
+	list listChecker
+	log  *slog.Logger
 }
 
 func NewTask(repo TaskRepository, list listChecker, logger *slog.Logger) *Task {
 	return &Task{
-		repo:   repo,
-		list:   list,
-		logger: logger,
+		repo: repo,
+		list: list,
+		log:  logger,
 	}
 }
 
 func (t *Task) Create(ctx context.Context, userID, listID uuid.UUID, in entity.CreateTaskIn) (uuid.UUID, error) {
+	log := t.log.With(slog.String("operation", "usecase.CreateTask"), slog.With("user_id", userID))
+
 	if err := t.list.ExistsByUserID(ctx, userID, listID); err != nil {
+		log.Debug("Task does not exist")
 		return uuid.Nil, err
 	}
+
 	if len(strings.TrimSpace(in.Description)) == 0 {
+		log.Debug("Task description is empty")
 		return uuid.Nil, ErrTaskDescriptionNotValid
 	}
-	if in.Deadline.Before(time.Now()) {
+
+	if in.Deadline != nil && in.Deadline.Before(time.Now()) {
+		log.Debug("Task deadline is before now")
 		return uuid.Nil, ErrDeadlineNotValid
 	}
+
 	return t.repo.Create(ctx, entity.Task{
 		ListID:      listID,
 		CreatedAt:   time.Now(),
@@ -74,22 +82,33 @@ func (t *Task) Update(ctx context.Context, userID, taskID uuid.UUID, in entity.U
 }
 
 func (t *Task) GetByListID(ctx context.Context, userID, listID uuid.UUID) ([]entity.Task, error) {
+	log := t.log.With(slog.String("operation", "usecase.GetTaskByListID"), slog.With("user_id", userID))
+
 	if err := t.list.ExistsByUserID(ctx, userID, listID); err != nil {
+		log.Debug("Task does not exist")
 		return nil, err
 	}
 	return t.repo.GetAllByListID(ctx, listID)
 }
 
 func (t *Task) Get(ctx context.Context, userID, taskID uuid.UUID) (entity.Task, error) {
+	log := t.log.With(slog.String("operation", "usecase.GetTask"), slog.With("user_id", userID))
+
 	if err := t.repo.ExistsByUserID(ctx, userID, taskID); err != nil {
+		log.Debug("Task does not exist")
 		return entity.Task{}, err
 	}
+
 	return t.repo.GetByID(ctx, taskID)
 }
 
 func (t *Task) Delete(ctx context.Context, userID, taskID uuid.UUID) error {
+	log := t.log.With(slog.String("operation", "usecase.GetTask"), slog.With("user_id", userID))
+
 	if err := t.repo.ExistsByUserID(ctx, userID, taskID); err != nil {
+		log.Debug("Task does not exist")
 		return err
 	}
+
 	return t.repo.DeleteByID(ctx, taskID)
 }

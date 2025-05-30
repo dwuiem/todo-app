@@ -1,13 +1,16 @@
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 CREATE TABLE IF NOT EXISTS lists (
-    id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     title TEXT NOT NULL,
-    user_id INT NOT NULL
+    user_id UUID NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS tasks (
-    id SERIAL PRIMARY KEY,
-    title TEXT NOT NULL,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deadline TIMESTAMP,
     completed BOOLEAN NOT NULL DEFAULT FALSE,
-    list_id INT NOT NULL REFERENCES lists(id) ON DELETE CASCADE
+    list_id UUID NOT NULL REFERENCES lists(id) ON DELETE CASCADE
 );

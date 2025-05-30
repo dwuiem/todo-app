@@ -18,14 +18,14 @@ type ListRepository interface {
 }
 
 type List struct {
-	repo   ListRepository
-	logger *slog.Logger
+	repo ListRepository
+	log  *slog.Logger
 }
 
 func NewList(repo ListRepository, logger *slog.Logger) *List {
 	return &List{
-		repo:   repo,
-		logger: logger,
+		repo: repo,
+		log:  logger,
 	}
 }
 
@@ -34,9 +34,13 @@ func (l *List) ExistsByUserID(ctx context.Context, userID, listID uuid.UUID) err
 }
 
 func (l *List) Create(ctx context.Context, userID uuid.UUID, in entity.CreateListIn) (uuid.UUID, error) {
+	log := l.log.With(slog.String("operation", "usecase.CreateList"), slog.With("user_id", userID))
+
 	if len(strings.TrimSpace(in.Title)) == 0 {
+		log.Debug("Title is not valid")
 		return uuid.Nil, ErrListTitleNotValid
 	}
+
 	return l.repo.Create(ctx, entity.List{
 		Title:  in.Title,
 		UserID: userID,
@@ -48,16 +52,24 @@ func (l *List) GetAll(ctx context.Context, userID uuid.UUID) ([]entity.List, err
 }
 
 func (l *List) Get(ctx context.Context, userID uuid.UUID, listID uuid.UUID) (entity.List, error) {
+	log := l.log.With(slog.String("operation", "usecase.GetAllLists"), slog.With("user_id", userID))
+
 	if err := l.repo.ExistsByUserID(ctx, userID, listID); err != nil {
+		log.Debug("List not found")
 		return entity.List{}, err
 	}
+
 	return l.repo.GetByID(ctx, listID)
 }
 
 func (l *List) Update(ctx context.Context, userID uuid.UUID, in entity.UpdateListIn) error {
+	log := l.log.With(slog.String("operation", "usecase.UpdateList"), slog.With("user_id", userID))
+
 	if len(strings.TrimSpace(in.Title)) == 0 {
+		log.Debug("Title is not valid")
 		return ErrListTitleNotValid
 	}
+
 	return l.repo.Update(ctx, entity.List{
 		Title:  in.Title,
 		UserID: userID,
@@ -65,8 +77,12 @@ func (l *List) Update(ctx context.Context, userID uuid.UUID, in entity.UpdateLis
 }
 
 func (l *List) Delete(ctx context.Context, userID, listID uuid.UUID) error {
+	log := l.log.With(slog.String("operation", "usecase.UpdateList"), slog.With("user_id", userID))
+
 	if err := l.repo.ExistsByUserID(ctx, userID, listID); err != nil {
+		log.Debug("User has no list")
 		return err
 	}
+
 	return l.repo.DeleteByID(ctx, listID)
 }

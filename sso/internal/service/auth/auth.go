@@ -55,7 +55,7 @@ func (a *Auth) Login(
 	password string,
 	appID int,
 ) (string, error) {
-	const op = "auth.Login"
+	const op = "server.Login"
 	log := a.log.With(slog.String("op", op), slog.String("username", username))
 
 	user, err := a.storage.GetUser(ctx, username)
@@ -96,7 +96,7 @@ func (a *Auth) Login(
 }
 
 func (a *Auth) Register(ctx context.Context, username string, password string) (uuid.UUID, error) {
-	const op = "auth.Register"
+	const op = "server.Register"
 	log := a.log.With(slog.String("op", op), slog.String("username", username))
 
 	passwordHash := generatePasswordHash(password, a.salt)
@@ -112,7 +112,7 @@ func (a *Auth) Register(ctx context.Context, username string, password string) (
 }
 
 func (a *Auth) IsAdmin(ctx context.Context, userID uuid.UUID) (bool, error) {
-	const op = "auth.IsAdmin"
+	const op = "server.IsAdmin"
 	log := a.log.With(slog.String("op", op), slog.String("user_id", fmt.Sprint(userID)))
 
 	isAdmin, err := a.storage.IsAdmin(ctx, userID)

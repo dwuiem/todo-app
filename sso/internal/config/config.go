@@ -4,48 +4,40 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/joho/godotenv"
 	"log"
-	"os"
 	"time"
 )
 
 const defaultConfigPath = "config/local.yaml"
 
 type Config struct {
-	Env        string           `yaml:"env" env-default:"local"`
-	TokenTTL   time.Duration    `yaml:"token_ttl" env-default:"1h"`
+	Env        string           `yaml:"env" env:"ENV"`
+	TokenTTL   time.Duration    `yaml:"token_ttl" env:"TOKEN_TTL"`
 	PostgresDB PostgresDBConfig `yaml:"postgres"`
 	GRPCServer GRPCServerConfig `yaml:"grpc_server"`
 }
 
 type GRPCServerConfig struct {
-	Port    int           `yaml:"port" env-default:"8080"`
-	Timeout time.Duration `yaml:"timeout" env-default:"1h"`
+	Port    int           `yaml:"port" env:"GRPC_SERVER_PORT"`
+	Timeout time.Duration `yaml:"timeout" env:"GRPC_SERVER_TIMEOUT"`
 }
 
 type PostgresDBConfig struct {
-	Host     string `yaml:"host" env-default:"localhost"`
-	Port     string `yaml:"port" env-default:"5432"`
-	DBName   string `yaml:"db_name"`
-	Username string `yaml:"username"`
-	Password string `yaml:"password" env:"DB_PASSWORD"`
+	Host     string `yaml:"host" env:"POSTGRES_DB_HOST"`
+	Port     string `yaml:"port" env:"POSTGRES_DB_PORT"`
+	DBName   string `yaml:"db_name" env:"POSTGRES_DB_NAME"`
+	Username string `yaml:"username" env:"POSTGRES_DB_USERNAME"`
+	Password string `yaml:"password" env:"POSTGRES_DB_PASSWORD"`
 }
 
 func MustLoad() *Config {
-	if err := godotenv.Load(); err != nil {
-		log.Print("No .env file found")
-	}
-	configPath, exists := os.LookupEnv("CONFIG_PATH")
-	if !exists {
-		configPath = defaultConfigPath
-	}
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		log.Fatal("CONFIG_PATH does not exist")
+	_ = godotenv.Load()
+
+	configPath := "config/local.yaml"
+	var cfg Config
+
+	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
+		log.Fatalf("failed to read config: %v", err)
 	}
 
-	var cfg Config
-	err := cleanenv.ReadConfig(configPath, &cfg)
-	if err != nil {
-		log.Fatal(err)
-	}
 	return &cfg
 }

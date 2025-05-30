@@ -1,4 +1,4 @@
-package auth
+package server
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"sso/gen/sso"
 	"sso/internal/service/auth"
 	"sso/internal/storage"
 )
@@ -82,7 +83,7 @@ func (s *serverAPI) Register(
 	}
 
 	return &sso.RegisterResponse{
-		UserId: userId,
+		UserId: userId.String(),
 	}, nil
 }
 
@@ -93,8 +94,11 @@ func (s *serverAPI) IsAdmin(
 	if err := validateIsAdmin(in); err != nil {
 		return nil, err
 	}
-
-	isAdmin, err := s.auth.IsAdmin(ctx, in.UserId)
+	id, err := uuid.Parse(in.UserId)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	isAdmin, err := s.auth.IsAdmin(ctx, id)
 	if err != nil {
 		if errors.Is(err, storage.ErrUserNotFound) {
 			return nil, status.Error(codes.NotFound, "user not found")
@@ -136,7 +140,7 @@ func validateLogin(r *sso.LoginRequest) error {
 }
 
 func validateIsAdmin(r *sso.IsAdminRequest) error {
-	if r.GetUserId() == 0 {
+	if r.GetUserId() == "" {
 		return status.Error(codes.InvalidArgument, "userId is empty")
 	}
 	return nil

@@ -1,7 +1,5 @@
 FROM golang:1.24.2-alpine
 
-ENV CONFIG_PATH=/app/config/local.yaml
-
 WORKDIR /app
 
 COPY go.mod .

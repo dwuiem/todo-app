@@ -46,8 +46,8 @@ func New(log *slog.Logger, cfg *config.Config) *App {
 	}
 
 	// Repositories
-	taskRep := postgres.NewTask(conn)
-	listRep := postgres.NewList(conn)
+	taskRep := postgres.NewTask(conn, log)
+	listRep := postgres.NewList(conn, log)
 
 	// Use cases
 	listUseCase := usecase.NewList(listRep, log)
@@ -55,18 +55,18 @@ func New(log *slog.Logger, cfg *config.Config) *App {
 
 	// Handlers
 	authHandler := handler.NewAuthHandler(client, cfg.AppId)
-	listHandler := handler.NewListHandler(listUseCase)
-	taskHandler := handler.NewTaskHandler(taskUseCase)
+	listHandler := handler.NewListHandler(listUseCase, log)
+	taskHandler := handler.NewTaskHandler(taskUseCase, log)
 
 	router := gin.New()
-	auth := router.Group("/auth")
+	auth := router.Group("/server")
 	{
 		auth.POST("/sign-up", authHandler.SignUp())
 		auth.POST("/sign-in", authHandler.SignIn())
 	}
-	api := router.Group("/api", middleware.AuthMiddleware([]byte(cfg.AppSecret), client))
+	api := router.Group("/api/", middleware.AuthMiddleware([]byte(cfg.AppSecret), client))
 	{
-		lists := api.Group("/lists")
+		lists := api.Group("/lists/")
 		{
 			lists.POST("/", listHandler.Create())
 			lists.GET("/", listHandler.GetAll())
@@ -79,7 +79,7 @@ func New(log *slog.Logger, cfg *config.Config) *App {
 				items.GET("/", taskHandler.GetByListID())
 			}
 		}
-		items := api.Group("/tasks")
+		items := api.Group("/tasks/")
 		{
 			items.GET("/:id", taskHandler.GetByID())
 			items.PUT("/:id", taskHandler.UpdateByID())

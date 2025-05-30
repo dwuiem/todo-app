@@ -31,14 +31,14 @@ func main() {
 
 	// Run application
 	application := app.New(log, cfg, storage)
-	go application.GRPCApp.MustRun()
+	go application.MustRun()
 
 	// Graceful shutdown
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
 	sign := <-stop
 	log.Info("Got signal. Stopping application ...", slog.String("signal", sign.String()))
-	application.GRPCApp.Stop()
+	application.Stop()
 	log.Info("Application stopped")
 }
 

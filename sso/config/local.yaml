@@ -1,12 +1,12 @@
-  env: 'local'
+env: 'local'
 token_ttl: 1h
 salt: "jh5jL1hrb4hj"
 grpc_server:
   port: 8081
   timeout: 10s
 postgres:
-  host: "sso-db"
-  port: "5432"
+  host: "localhost"
+  port: "5433"
   db_name: "sso"
   username: "user"
   password: "password"
