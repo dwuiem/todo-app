@@ -11,7 +11,7 @@ import (
 	"todo/internal/adapter/controller/http/middleware"
 	"todo/internal/adapter/repository/postgres"
 	sso "todo/internal/adapter/sso/grpc"
-	"todo/internal/config"
+	"todo/internal/app/config"
 	"todo/internal/domain/usecase"
 )
 

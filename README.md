@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This is a microservice application with simple CRUD operations with tasks and lists with authentication
+This is a microservice application with simple CRUD operations with tasks and lists
 
 ## Technology Stack
 - **Language** Go (1.23)
@@ -11,7 +11,6 @@ This is a microservice application with simple CRUD operations with tasks and li
 - **Authentication** JWT lib to identity users (JSON web token)
 - **Database** PostgreSQL using `pgx` lib
 - **Migrations** using `github.com/golang-migrate/migrate/v4`
-- 
 
 ## Usage
 
@@ -29,14 +28,37 @@ docker-compose up -d
 
 ## Project Structure
 ```
-todo-app
-├── api                     # API Protobuf contracts 
-│    ├── proto
-│    └── Makefile
-├── services             
-│    ├── sso                # SSO service (GRPC server)
-│    └── todo               # TODO service (HTTP server)
-├── .gitignore
-├── README.md
-└── docker-compose.yaml     # Docker Compose
+.
+├── api
+│   ├── gen
+│   │   └── sso
+│   └── proto
+├── sso
+│   ├── cmd
+│   │   ├── app
+│   │   └── migrate
+│   ├── config
+│   ├── gen
+│   │   └── sso
+│   ├── internal
+│   │   ├── adapter
+│   │   ├── app
+│   │   ├── config
+│   │   ├── domain
+│   │   ├── lib
+│   │   ├── service
+│   │   └── storage
+│   └── migrations
+└── todo
+    ├── cmd
+    │   ├── app
+    │   └── migrate
+    ├── config
+    ├── gen
+    │   └── sso
+    ├── internal
+    │   ├── adapter
+    │   ├── app
+    │   └── domain
+    └── migrations
 ```

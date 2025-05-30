@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"time"
 	"todo/internal/app"
-	"todo/internal/config"
+	"todo/internal/app/config"
 )
 
 func main() {
