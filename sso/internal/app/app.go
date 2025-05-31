@@ -5,27 +5,24 @@ import (
 	"google.golang.org/grpc"
 	"log/slog"
 	"net"
-	"sso/internal/adapter/controller/grpc/server"
-	"sso/internal/config"
-	"sso/internal/service/auth"
-	"sso/internal/storage/postgres"
+	server "sso/internal/adapter/controller/grpc"
+	"sso/internal/adapter/repository/postgres"
+	"sso/internal/app/config"
+	"sso/internal/domain/usecase"
 )
 
-// App todo
 type App struct {
 	gRPCServer *grpc.Server
-	postgresDB *postgres.Storage
 	log        *slog.Logger
 	port       int
 }
 
-func New(log *slog.Logger, cfg *config.Config, db *postgres.Storage) *App {
-	authService := auth.New(log, db, cfg.TokenTTL)
+func New(log *slog.Logger, cfg *config.Config, repository *postgres.Auth) *App {
+	uc := usecase.New(log, repository, cfg.TokenTTL)
 	gRPCServer := grpc.NewServer()
-	server.RegisterGRPC(gRPCServer, authService)
+	server.RegisterGRPC(gRPCServer, uc)
 	return &App{
 		gRPCServer: gRPCServer,
-		postgresDB: db,
 		log:        log,
 		port:       cfg.GRPCServer.Port,
 	}
@@ -38,7 +35,7 @@ func (a *App) MustRun() {
 }
 
 func (a *App) Run() error {
-	const op = "grpcapp.Run"
+	const op = "app.Run"
 	log := a.log.With(slog.String("op", op))
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", a.port))

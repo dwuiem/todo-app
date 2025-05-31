@@ -4,9 +4,9 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"sso/internal/adapter/repository/postgres"
 	"sso/internal/app"
-	"sso/internal/config"
-	"sso/internal/storage/postgres"
+	"sso/internal/app/config"
 	"syscall"
 )
 
@@ -22,7 +22,7 @@ func main() {
 		slog.Int("port", cfg.GRPCServer.Port),
 	)
 
-	// Storage
+	// Auth
 	storage, err := postgres.New(cfg)
 	if err != nil {
 		slog.Error("Failed to connect to postgres", "error", err)

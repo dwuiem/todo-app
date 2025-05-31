@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"log/slog"
 	"net/http"
-	"todo/internal/adapter/controller/http/handler"
+	"todo/internal/adapter/controller/http/grpc"
 	"todo/internal/adapter/controller/http/middleware"
 	"todo/internal/adapter/repository/postgres"
 	sso "todo/internal/adapter/sso/grpc"
@@ -54,9 +54,9 @@ func New(log *slog.Logger, cfg *config.Config) *App {
 	taskUseCase := usecase.NewTask(taskRep, listUseCase, log)
 
 	// Handlers
-	authHandler := handler.NewAuthHandler(client, cfg.AppId)
-	listHandler := handler.NewListHandler(listUseCase, log)
-	taskHandler := handler.NewTaskHandler(taskUseCase, log)
+	authHandler := grpc.NewAuthHandler(client, log, cfg.AppId)
+	listHandler := grpc.NewListHandler(listUseCase, log)
+	taskHandler := grpc.NewTaskHandler(taskUseCase, log)
 
 	router := gin.New()
 	auth := router.Group("/server")

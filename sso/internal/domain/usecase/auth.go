@@ -1,4 +1,4 @@
-package auth
+package usecase
 
 import (
 	"context"
@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"log/slog"
-	"sso/internal/domain/model"
-	"sso/internal/lib/jwt"
-	"sso/internal/storage"
+	"sso/internal/adapter/repository"
+	"sso/internal/domain/entity"
+	"sso/internal/jwt"
 	"strings"
 	"time"
 )
@@ -22,12 +22,12 @@ var (
 
 type Auth struct {
 	log      *slog.Logger
-	storage  Storage
+	repo     Repository
 	salt     string
 	tokenTTL time.Duration
 }
 
-type Storage interface {
+type Repository interface {
 	SaveUser(
 		ctx context.Context,
 		username string,
@@ -36,15 +36,15 @@ type Storage interface {
 	GetUser(
 		ctx context.Context,
 		username string,
-	) (model.User, error)
-	GetApp(ctx context.Context, appID int) (model.App, error)
+	) (entity.User, error)
+	GetApp(ctx context.Context, appID int) (entity.App, error)
 	IsAdmin(ctx context.Context, userID uuid.UUID) (bool, error)
 }
 
-func New(log *slog.Logger, storage Storage, tokenTTL time.Duration) *Auth {
+func New(log *slog.Logger, repository Repository, tokenTTL time.Duration) *Auth {
 	return &Auth{
 		log:      log,
-		storage:  storage,
+		repo:     repository,
 		tokenTTL: tokenTTL,
 	}
 }
@@ -58,9 +58,9 @@ func (a *Auth) Login(
 	const op = "server.Login"
 	log := a.log.With(slog.String("op", op), slog.String("username", username))
 
-	user, err := a.storage.GetUser(ctx, username)
+	user, err := a.repo.GetUser(ctx, username)
 	if err != nil {
-		if errors.Is(err, storage.ErrUserNotFound) {
+		if errors.Is(err, repository.ErrUserNotFound) {
 			a.log.Warn("User not found")
 			return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
 		}
@@ -75,9 +75,9 @@ func (a *Auth) Login(
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
-	app, err := a.storage.GetApp(ctx, appID)
+	app, err := a.repo.GetApp(ctx, appID)
 	if err != nil {
-		if errors.Is(err, storage.ErrAppNotFound) {
+		if errors.Is(err, repository.ErrAppNotFound) {
 			a.log.Warn("App not found")
 			return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
 		}
@@ -100,9 +100,9 @@ func (a *Auth) Register(ctx context.Context, username string, password string) (
 	log := a.log.With(slog.String("op", op), slog.String("username", username))
 
 	passwordHash := generatePasswordHash(password, a.salt)
-	id, err := a.storage.SaveUser(ctx, username, passwordHash)
+	id, err := a.repo.SaveUser(ctx, username, passwordHash)
 	if err != nil {
-		if errors.Is(err, storage.ErrUserExists) {
+		if errors.Is(err, repository.ErrUserExists) {
 			return uuid.Nil, ErrUserExists
 		}
 		return uuid.Nil, fmt.Errorf("%s: %w", op, err)
@@ -113,11 +113,11 @@ func (a *Auth) Register(ctx context.Context, username string, password string) (
 
 func (a *Auth) IsAdmin(ctx context.Context, userID uuid.UUID) (bool, error) {
 	const op = "server.IsAdmin"
-	log := a.log.With(slog.String("op", op), slog.String("user_id", fmt.Sprint(userID)))
+	log := a.log.With(slog.String("op", op), slog.String("userID", fmt.Sprint(userID)))
 
-	isAdmin, err := a.storage.IsAdmin(ctx, userID)
+	isAdmin, err := a.repo.IsAdmin(ctx, userID)
 	if err != nil {
-		if errors.Is(err, storage.ErrUserNotFound) {
+		if errors.Is(err, repository.ErrUserNotFound) {
 			return false, err
 		}
 		return false, fmt.Errorf("%s: %w", op, err)

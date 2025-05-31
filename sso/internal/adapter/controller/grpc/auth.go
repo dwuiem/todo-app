@@ -1,4 +1,4 @@
-package server
+package grpc
 
 import (
 	"context"
@@ -8,8 +8,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"sso/gen/sso"
-	"sso/internal/service/auth"
-	"sso/internal/storage"
+	"sso/internal/adapter/repository"
+	"sso/internal/domain/usecase"
 )
 
 type serverAPI struct {
@@ -53,7 +53,7 @@ func (s *serverAPI) Login(
 	token, err := s.auth.Login(ctx, in.Username, in.Password, int(in.AppId))
 
 	if err != nil {
-		if errors.Is(err, auth.ErrInvalidCredentials) {
+		if errors.Is(err, usecase.ErrInvalidCredentials) {
 			return nil, status.Error(codes.InvalidArgument, "invalid credentials")
 		}
 		return nil, status.Error(codes.Internal, err.Error())
@@ -76,7 +76,7 @@ func (s *serverAPI) Register(
 	userId, err := s.auth.Register(ctx, in.Username, in.Password)
 
 	if err != nil {
-		if errors.Is(err, auth.ErrUserExists) {
+		if errors.Is(err, usecase.ErrUserExists) {
 			return nil, status.Error(codes.AlreadyExists, "user already exists")
 		}
 		return nil, status.Error(codes.Internal, err.Error())
@@ -100,7 +100,7 @@ func (s *serverAPI) IsAdmin(
 	}
 	isAdmin, err := s.auth.IsAdmin(ctx, id)
 	if err != nil {
-		if errors.Is(err, storage.ErrUserNotFound) {
+		if errors.Is(err, repository.ErrUserNotFound) {
 			return nil, status.Error(codes.NotFound, "user not found")
 		}
 		return nil, status.Error(codes.Internal, err.Error())

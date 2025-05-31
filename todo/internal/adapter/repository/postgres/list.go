@@ -25,7 +25,7 @@ func NewList(db *pgxpool.Pool, logger *slog.Logger) *List {
 }
 
 func (s *List) Create(ctx context.Context, list entity.List) (uuid.UUID, error) {
-	const op = "storage.postgres.List.Create"
+	const op = "repository.postgres.List.Create"
 	log := s.log.With(slog.String("operation", op), slog.String("list id", list.ID.String()))
 
 	const query = `INSERT INTO lists (title, user_id) VALUES ($1, $2) RETURNING id`
@@ -37,12 +37,12 @@ func (s *List) Create(ctx context.Context, list entity.List) (uuid.UUID, error) 
 		return uuid.Nil, fmt.Errorf("%s %s", op, err)
 	}
 
-	log.Debug("Inserted new list")
+	log.Debug("Inserted new list", slog.Any("listID", id.String()))
 	return id, nil
 }
 
 func (s *List) Update(ctx context.Context, list entity.List) error {
-	const op = "storage.postgres.List.Update"
+	const op = "repository.postgres.List.Update"
 	log := s.log.With(
 		slog.String("operation", op),
 		slog.String("list id", list.ID.String()),
@@ -66,7 +66,7 @@ func (s *List) Update(ctx context.Context, list entity.List) error {
 }
 
 func (s *List) GetAllByUserID(ctx context.Context, userID uuid.UUID) ([]entity.List, error) {
-	const op = "storage.postgres.List.GetAllByUserID"
+	const op = "repository.postgres.List.GetAllByUserID"
 	log := s.log.With(slog.String("operation", op), slog.String("user id", userID.String()))
 
 	const query = `SELECT id, title, user_id FROM lists WHERE user_id = $1`
@@ -97,7 +97,7 @@ func (s *List) GetAllByUserID(ctx context.Context, userID uuid.UUID) ([]entity.L
 }
 
 func (s *List) GetByID(ctx context.Context, listID uuid.UUID) (entity.List, error) {
-	const op = "storage.postgres.List.GetByID"
+	const op = "repository.postgres.List.GetByID"
 	log := s.log.With(slog.String("operation", op), slog.String("list id", listID.String()))
 
 	const query = `SELECT id, title, user_id FROM lists WHERE id = $1`
@@ -118,7 +118,7 @@ func (s *List) GetByID(ctx context.Context, listID uuid.UUID) (entity.List, erro
 }
 
 func (s *List) ExistsByUserID(ctx context.Context, userID, listID uuid.UUID) error {
-	const op = "storage.postgres.List.ExistsByUserID"
+	const op = "repository.postgres.List.ExistsByUserID"
 	log := s.log.With(
 		slog.String("operation", op),
 		slog.String("list id", listID.String()),
@@ -143,7 +143,7 @@ func (s *List) ExistsByUserID(ctx context.Context, userID, listID uuid.UUID) err
 }
 
 func (s *List) DeleteByID(ctx context.Context, listID uuid.UUID) error {
-	const op = "storage.postgres.List.DeleteByID"
+	const op = "repository.postgres.List.DeleteByID"
 	log := s.log.With(slog.String("operation", op), slog.String("list id", listID.String()))
 
 	const query = `DELETE FROM lists WHERE id = $1`

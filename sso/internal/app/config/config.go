@@ -7,8 +7,6 @@ import (
 	"time"
 )
 
-const defaultConfigPath = "config/local.yaml"
-
 type Config struct {
 	Env        string           `yaml:"env" env:"ENV"`
 	TokenTTL   time.Duration    `yaml:"token_ttl" env:"TOKEN_TTL"`

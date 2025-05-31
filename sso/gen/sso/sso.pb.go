@@ -380,20 +380,20 @@ func file_sso_proto_rawDescGZIP() []byte {
 
 var file_sso_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_sso_proto_goTypes = []interface{}{
-	(*RegisterRequest)(nil),  // 0: auth.RegisterRequest
-	(*RegisterResponse)(nil), // 1: auth.RegisterResponse
-	(*LoginRequest)(nil),     // 2: auth.LoginRequest
-	(*LoginResponse)(nil),    // 3: auth.LoginResponse
-	(*IsAdminRequest)(nil),   // 4: auth.IsAdminRequest
-	(*IsAdminResponse)(nil),  // 5: auth.IsAdminResponse
+	(*RegisterRequest)(nil),  // 0: usecase.RegisterRequest
+	(*RegisterResponse)(nil), // 1: usecase.RegisterResponse
+	(*LoginRequest)(nil),     // 2: usecase.LoginRequest
+	(*LoginResponse)(nil),    // 3: usecase.LoginResponse
+	(*IsAdminRequest)(nil),   // 4: usecase.IsAdminRequest
+	(*IsAdminResponse)(nil),  // 5: usecase.IsAdminResponse
 }
 var file_sso_proto_depIdxs = []int32{
-	0, // 0: auth.Auth.Register:input_type -> auth.RegisterRequest
-	2, // 1: auth.Auth.Login:input_type -> auth.LoginRequest
-	4, // 2: auth.Auth.IsAdmin:input_type -> auth.IsAdminRequest
-	1, // 3: auth.Auth.Register:output_type -> auth.RegisterResponse
-	3, // 4: auth.Auth.Login:output_type -> auth.LoginResponse
-	5, // 5: auth.Auth.IsAdmin:output_type -> auth.IsAdminResponse
+	0, // 0: usecase.Auth.Register:input_type -> usecase.RegisterRequest
+	2, // 1: usecase.Auth.Login:input_type -> usecase.LoginRequest
+	4, // 2: usecase.Auth.IsAdmin:input_type -> usecase.IsAdminRequest
+	1, // 3: usecase.Auth.Register:output_type -> usecase.RegisterResponse
+	3, // 4: usecase.Auth.Login:output_type -> usecase.LoginResponse
+	5, // 5: usecase.Auth.IsAdmin:output_type -> usecase.IsAdminResponse
 	3, // [3:6] is the sub-list for method output_type
 	0, // [0:3] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name

@@ -1,4 +1,4 @@
-package handler
+package grpc
 
 import (
 	"errors"
@@ -51,7 +51,6 @@ func (h *TaskHandler) Create() gin.HandlerFunc {
 
 		taskID, err := h.uc.Create(c.Request.Context(), userID, listID, req)
 		if err != nil {
-			log.Error("Internal error", slog.Any("error", err))
 			log.Error("Internal error", slog.Any("error", err))
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
