@@ -53,11 +53,8 @@ todo-app
 │   ├── internal
 │   │   ├── adapter
 │   │   ├── app
-│   │   ├── config
 │   │   ├── domain
-│   │   ├── lib
-│   │   ├── service
-│   │   └── storage
+│   │   └── jwt
 │   └── migrations
 │       ├── 1_init.down.sql
 │       └── 1_init.up.sql
