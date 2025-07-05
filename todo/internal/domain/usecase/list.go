@@ -2,10 +2,11 @@ package usecase
 
 import (
 	"context"
-	"github.com/google/uuid"
 	"log/slog"
 	"strings"
 	"todo/internal/domain/entity"
+
+	"github.com/google/uuid"
 )
 
 type ListRepository interface {
@@ -34,7 +35,7 @@ func (l *List) ExistsByUserID(ctx context.Context, userID, listID uuid.UUID) err
 }
 
 func (l *List) Create(ctx context.Context, userID uuid.UUID, in entity.CreateListIn) (uuid.UUID, error) {
-	log := l.log.With(slog.String("operation", "usecase.CreateList"), slog.With("user_id", userID))
+	log := l.log.With(slog.String("operation", "usecase.CreateList"), slog.Any("user_id", userID))
 
 	if len(strings.TrimSpace(in.Title)) == 0 {
 		log.Debug("Title is not valid")
@@ -52,7 +53,7 @@ func (l *List) GetAll(ctx context.Context, userID uuid.UUID) ([]entity.List, err
 }
 
 func (l *List) Get(ctx context.Context, userID uuid.UUID, listID uuid.UUID) (entity.List, error) {
-	log := l.log.With(slog.String("operation", "usecase.GetAllLists"), slog.With("user_id", userID))
+	log := l.log.With(slog.String("operation", "usecase.GetAllLists"), slog.Any("user_id", userID))
 
 	if err := l.repo.ExistsByUserID(ctx, userID, listID); err != nil {
 		log.Debug("List not found")
@@ -63,7 +64,7 @@ func (l *List) Get(ctx context.Context, userID uuid.UUID, listID uuid.UUID) (ent
 }
 
 func (l *List) Update(ctx context.Context, userID uuid.UUID, in entity.UpdateListIn) error {
-	log := l.log.With(slog.String("operation", "usecase.UpdateList"), slog.With("user_id", userID))
+	log := l.log.With(slog.String("operation", "usecase.UpdateList"), slog.Any("user_id", userID))
 
 	if len(strings.TrimSpace(in.Title)) == 0 {
 		log.Debug("Title is not valid")
@@ -77,7 +78,7 @@ func (l *List) Update(ctx context.Context, userID uuid.UUID, in entity.UpdateLis
 }
 
 func (l *List) Delete(ctx context.Context, userID, listID uuid.UUID) error {
-	log := l.log.With(slog.String("operation", "usecase.UpdateList"), slog.With("user_id", userID))
+	log := l.log.With(slog.String("operation", "usecase.UpdateList"), slog.Any("user_id", userID))
 
 	if err := l.repo.ExistsByUserID(ctx, userID, listID); err != nil {
 		log.Debug("User has no list")

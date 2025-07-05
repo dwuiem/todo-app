@@ -2,14 +2,15 @@ package grpc
 
 import (
 	"errors"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"log/slog"
 	"net/http"
 	"todo/internal/adapter/controller/http/auth"
 	"todo/internal/adapter/repository"
 	"todo/internal/domain/entity"
 	"todo/internal/domain/usecase"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type TaskHandler struct {
@@ -126,7 +127,7 @@ func (h *TaskHandler) GetByListID() gin.HandlerFunc {
 		}
 
 		log.Debug("Tasks found", slog.Any("amount", len(tasks)))
-		if len(tasks) == 0 {
+		if len(tasks) != 0 {
 			c.JSON(http.StatusOK, tasks)
 		} else {
 			c.JSON(http.StatusOK, "List is empty")
